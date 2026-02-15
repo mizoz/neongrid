@@ -1,52 +1,78 @@
-# NeonGrid City Builder
+# Neongrid City Builder
 
 Build your cyberpunk metropolis in this terminal-style city tycoon game. Manage resources, survive disasters, research tech, and become a legend!
 
-A Blade Runner meets SimCity experience - construct neon-lit skyscrapers, power your city, and face random events from alien invasions to tech breakthroughs.
-
-## Quick Start
-
-Open `neongrid.html` in any browser - no installation required!
-
 ## Features
 
-- 16 building types with ASCII art
-- Real-time traffic, population & economy
-- Day/night cycle with weather
-- 12 random events (disasters, trade deals, alien invasions)
-- Branching tech tree (Infrastructure, Energy, Society)
-- 15 achievements to unlock
-- Save/load to JSON
-- Retro sound effects
+- **Terminal-style graphics** - Immerse yourself in a retro-futuristic aesthetic
+- **Resource management** - Balance power, food, population, and economy
+- **Random events** - Face disasters, alien invasions, and tech breakthroughs
+- **Research system** - Unlock new buildings and technologies
+- **Neon-lit skyscrapers** - Build and customize your cyberpunk city
+- **Day/night cycle** - Watch your city transform
+
+## Installation
+
+### Prerequisites
+
+- Python 3.8+
+- Terminal emulator
+
+### Clone and Run
+
+```bash
+git clone https://github.com/mizoz/Neongrid-city-builder.git
+cd Neongrid-city-builder
+python -m pip install -r requirements.txt
+python main.py
+```
+
+## Gameplay
+
+### Starting Out
+
+Begin with a small settlement and grow into a thriving metropolis. Build essential structures like:
+
+- Power plants
+- Residential zones
+- Commercial districts
+- Research labs
+
+### Resources
+
+- ⚡ **Power** - Keep your city running
+- 🍔 **Food** - Feed your population
+- 👥 **Population** - Grow your workforce
+- 💰 **Money** - Fund your expansion
+- 🔬 **Research** - Unlock new technologies
+
+### Events
+
+Random events keep gameplay exciting:
+- Natural disasters
+- Alien invasions
+- Tech breakthroughs
+- Economic crises
+- Golden ages
 
 ## Controls
 
-- Click building → Click grid to place
-- 1-9: Quick select buildings
-- S: Save | L: Load | Space: Pause
+- Arrow keys - Navigate menus
+- Enter - Select/Confirm
+- ESC - Cancel/Back
 
-## Project Structure
+## Screenshots
 
-```
-neongrid-city-builder/
-├── index.html      # Modular version
-├── neongrid.html   # Single-file version
-├── css/style.css   # Styles
-├── js/game.js      # Game engine
-└── README.md
-```
+Experience the neon-lit aesthetic of a cyberpunk city builder!
 
-## Tech Stack
+## Contributing
 
-- Vanilla JavaScript (no frameworks)
-- CSS3 with custom properties
-- Web Audio API for sounds
-- VT323 terminal font
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-MIT License - Free to use and modify.
+MIT License
 
----
+## Author
 
-**Build. Survive. Conquer.** 🌃
+mizoz
