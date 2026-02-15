@@ -1,0 +1,1896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeonGrid City Builder // Cyberpunk Terminal</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg-dark: #0a0a0f;
+  --bg-panel: #12121a;
+  --neon-cyan: #00fff9;
+  --neon-pink: #ff00ff;
+  --neon-purple: #9d00ff;
+  --neon-green: #39ff14;
+  --neon-orange: #ff6b00;
+  --neon-red: #ff0040;
+  --text-dim: #4a4a5a;
+  --text-bright: #e0e0ff;
+}
+
+body {
+  font-family: 'VT323', monospace;
+  background: var(--bg-dark);
+  color: var(--text-bright);
+  overflow: hidden;
+  height: 100vh;
+  font-size: 16px;
+}
+
+/* CRT Scanline Effect */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15),
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.4) 100%);
+  pointer-events: none;
+  z-index: 9998;
+}
+
+/* Main Layout */
+#game-container {
+  display: grid;
+  grid-template-rows: 50px 1fr 200px;
+  grid-template-columns: 250px 1fr 280px;
+  height: 100vh;
+  gap: 2px;
+  padding: 4px;
+}
+
+/* Header */
+#header {
+  grid-column: 1 / -1;
+  background: var(--bg-panel);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  border: 1px solid var(--neon-cyan);
+  box-shadow: 0 0 20px rgba(0, 255, 249, 0.3), inset 0 0 30px rgba(0, 255, 249, 0.05);
+}
+
+#title {
+  font-size: 28px;
+  color: var(--neon-cyan);
+  text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan);
+  letter-spacing: 4px;
+}
+
+#resources {
+  display: flex;
+  gap: 25px;
+}
+
+.resource {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+}
+
+.resource-icon {
+  font-size: 20px;
+}
+
+.resource-value {
+  color: var(--neon-green);
+  min-width: 80px;
+  text-shadow: 0 0 8px var(--neon-green);
+}
+
+.resource-value.credits { color: var(--neon-green); text-shadow: 0 0 8px var(--neon-green); }
+.resource-value.energy { color: var(--neon-cyan); text-shadow: 0 0 8px var(--neon-cyan); }
+.resource-value.population { color: var(--neon-pink); text-shadow: 0 0 8px var(--neon-pink); }
+.resource-value.happiness { color: var(--neon-orange); text-shadow: 0 0 8px var(--neon-orange); }
+.resource-value.tech { color: var(--neon-purple); text-shadow: 0 0 8px var(--neon-purple); }
+
+#game-controls {
+  display: flex;
+  gap: 10px;
+}
+
+.btn {
+  background: transparent;
+  border: 1px solid var(--neon-cyan);
+  color: var(--neon-cyan);
+  padding: 5px 15px;
+  font-family: 'VT323', monospace;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn:hover {
+  background: var(--neon-cyan);
+  color: var(--bg-dark);
+  box-shadow: 0 0 15px var(--neon-cyan);
+}
+
+.btn.active {
+  background: var(--neon-pink);
+  border-color: var(--neon-pink);
+  color: var(--bg-dark);
+}
+
+/* Building Panel */
+#building-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--neon-purple);
+  box-shadow: 0 0 15px rgba(157, 0, 255, 0.2);
+  overflow-y: auto;
+  padding: 10px;
+}
+
+#building-panel h3 {
+  color: var(--neon-purple);
+  text-shadow: 0 0 10px var(--neon-purple);
+  margin-bottom: 15px;
+  font-size: 20px;
+  border-bottom: 1px solid var(--neon-purple);
+  padding-bottom: 5px;
+}
+
+.building-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  margin-bottom: 8px;
+  background: rgba(157, 0, 255, 0.1);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.building-item:hover {
+  border-color: var(--neon-purple);
+  background: rgba(157, 0, 255, 0.2);
+}
+
+.building-item.selected {
+  border-color: var(--neon-pink);
+  background: rgba(255, 0, 255, 0.2);
+  box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
+}
+
+.building-icon {
+  font-size: 24px;
+  width: 30px;
+  text-align: center;
+}
+
+.building-info {
+  flex: 1;
+}
+
+.building-name {
+  color: var(--text-bright);
+  font-size: 16px;
+}
+
+.building-cost {
+  color: var(--neon-green);
+  font-size: 14px;
+}
+
+.building-key {
+  color: var(--text-dim);
+  font-size: 14px;
+}
+
+/* City View */
+#city-view {
+  background: #080810;
+  border: 1px solid var(--neon-cyan);
+  position: relative;
+  overflow: hidden;
+}
+
+#city-grid {
+  display: grid;
+  grid-template-columns: repeat(20, 1fr);
+  grid-template-rows: repeat(15, 1fr);
+  height: 100%;
+  width: 100%;
+}
+
+.cell {
+  border: 1px solid #1a1a2a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.1s;
+  position: relative;
+}
+
+.cell:hover {
+  background: rgba(0, 255, 249, 0.1);
+  border-color: var(--neon-cyan);
+}
+
+.cell.road { color: #3a3a4a; background: #0f0f15; }
+.cell.empty { color: #1a1a2a; }
+
+.cell.building {
+  font-size: 10px;
+  text-align: center;
+  line-height: 1.1;
+}
+
+.cell .building-ascii {
+  font-size: 8px;
+  line-height: 1;
+  white-space: pre;
+}
+
+/* Building colors */
+.cell[data-type="residential"] { color: #00ffaa; text-shadow: 0 0 5px #00ffaa; background: rgba(0, 255, 170, 0.05); }
+.cell[data-type="power"] { color: #ffff00; text-shadow: 0 0 5px #ffff00; background: rgba(255, 255, 0, 0.05); }
+.cell[data-type="commercial"] { color: #00aaff; text-shadow: 0 0 5px #00aaff; background: rgba(0, 170, 255, 0.05); }
+.cell[data-type="industrial"] { color: #ff8800; text-shadow: 0 0 5px #ff8800; background: rgba(255, 136, 0, 0.05); }
+.cell[data-type="police"] { color: #4488ff; text-shadow: 0 0 5px #4488ff; background: rgba(68, 136, 255, 0.05); }
+.cell[data-type="hospital"] { color: #ff4444; text-shadow: 0 0 5px #ff4444; background: rgba(255, 68, 68, 0.05); }
+.cell[data-type="entertainment"] { color: #ff00ff; text-shadow: 0 0 5px #ff00ff; background: rgba(255, 0, 255, 0.05); }
+.cell[data-type="spaceport"] { color: #aa00ff; text-shadow: 0 0 8px #aa00ff; background: rgba(170, 0, 255, 0.1); }
+.cell[data-type="datacenter"] { color: #00ffff; text-shadow: 0 0 5px #00ffff; background: rgba(0, 255, 255, 0.05); }
+.cell[data-type="water"] { color: #0088ff; text-shadow: 0 0 5px #0088ff; background: rgba(0, 136, 255, 0.05); }
+.cell[data-type="transit"] { color: #88ff00; text-shadow: 0 0 5px #88ff00; background: rgba(136, 255, 0, 0.05); }
+.cell[data-type="research"] { color: #ff0088; text-shadow: 0 0 5px #ff0088; background: rgba(255, 0, 136, 0.05); }
+.cell[data-type="clonefarm"] { color: #00ff88; text-shadow: 0 0 5px #00ff88; background: rgba(0, 255, 136, 0.05); }
+.cell[data-type="billboard"] { color: #ffff00; text-shadow: 0 0 10px #ffff00; animation: pulse 1s infinite; }
+.cell[data-type="defense"] { color: #ff0000; text-shadow: 0 0 5px #ff0000; background: rgba(255, 0, 0, 0.05); }
+.cell[data-type="blackmarket"] { color: #8800ff; text-shadow: 0 0 5px #8800ff; background: rgba(136, 0, 255, 0.05); }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Traffic */
+.traffic {
+  position: absolute;
+  font-size: 10px;
+  transition: all 0.5s;
+  z-index: 10;
+}
+
+/* Weather Overlay */
+#weather-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.weather-particle {
+  position: absolute;
+  color: rgba(200, 200, 255, 0.5);
+  font-size: 12px;
+  animation: fall linear infinite;
+}
+
+@keyframes fall {
+  to { transform: translateY(100vh); }
+}
+
+/* Day/Night Overlay */
+#daynight-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 4;
+  transition: background 2s;
+}
+
+#daynight-overlay.day { background: transparent; }
+#daynight-overlay.night { background: rgba(0, 0, 50, 0.3); }
+#daynight-overlay.twilight { background: rgba(50, 0, 50, 0.2); }
+
+/* Event Panel */
+#event-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--neon-orange);
+  box-shadow: 0 0 15px rgba(255, 107, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+}
+
+#event-panel h3 {
+  color: var(--neon-orange);
+  text-shadow: 0 0 10px var(--neon-orange);
+  padding: 10px;
+  border-bottom: 1px solid var(--neon-orange);
+  font-size: 20px;
+}
+
+#event-log {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.event-entry {
+  padding: 8px;
+  margin-bottom: 8px;
+  background: rgba(255, 107, 0, 0.1);
+  border-left: 3px solid var(--neon-orange);
+  font-size: 14px;
+  animation: slideIn 0.3s;
+}
+
+.event-entry.warning { border-color: var(--neon-red); background: rgba(255, 0, 64, 0.1); }
+.event-entry.success { border-color: var(--neon-green); background: rgba(57, 255, 20, 0.1); }
+.event-entry.info { border-color: var(--neon-cyan); background: rgba(0, 255, 249, 0.1); }
+
+@keyframes slideIn {
+  from { transform: translateX(-20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.event-time {
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+/* Bottom Panel */
+#bottom-panel {
+  grid-column: 1 / -1;
+  background: var(--bg-panel);
+  border: 1px solid var(--neon-green);
+  display: flex;
+  gap: 2px;
+}
+
+#tech-tree, #achievements {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+}
+
+#tech-tree {
+  border-right: 1px solid var(--neon-green);
+}
+
+#tech-tree h3, #achievements h3 {
+  color: var(--neon-green);
+  text-shadow: 0 0 10px var(--neon-green);
+  margin-bottom: 15px;
+  font-size: 20px;
+}
+
+.tech-node {
+  display: inline-block;
+  padding: 8px 15px;
+  margin: 5px;
+  background: rgba(57, 255, 20, 0.1);
+  border: 1px solid var(--neon-green);
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.tech-node:hover:not(.locked):not(.researched) {
+  background: var(--neon-green);
+  color: var(--bg-dark);
+}
+
+.tech-node.researched {
+  background: var(--neon-green);
+  color: var(--bg-dark);
+  box-shadow: 0 0 15px var(--neon-green);
+}
+
+.tech-node.locked {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: var(--text-dim);
+}
+
+.tech-node.current {
+  border-color: var(--neon-cyan);
+  animation: glow 1s infinite;
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 5px var(--neon-cyan); }
+  50% { box-shadow: 0 0 20px var(--neon-cyan); }
+}
+
+.achievement {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  margin-bottom: 8px;
+  background: rgba(57, 255, 20, 0.05);
+  border: 1px solid #2a2a3a;
+}
+
+.achievement.unlocked {
+  border-color: var(--neon-green);
+  background: rgba(57, 255, 20, 0.1);
+}
+
+.achievement-icon {
+  font-size: 24px;
+}
+
+.achievement-name {
+  color: var(--text-bright);
+  font-size: 16px;
+}
+
+.achievement.unlocked .achievement-name {
+  color: var(--neon-green);
+  text-shadow: 0 0 8px var(--neon-green);
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: var(--bg-panel);
+  border: 2px solid var(--neon-pink);
+  box-shadow: 0 0 30px rgba(255, 0, 255, 0.5);
+  padding: 30px;
+  max-width: 500px;
+  animation: modalIn 0.3s;
+}
+
+@keyframes modalIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.modal h2 {
+  color: var(--neon-pink);
+  text-shadow: 0 0 15px var(--neon-pink);
+  margin-bottom: 20px;
+  font-size: 28px;
+}
+
+.modal p {
+  margin-bottom: 20px;
+  line-height: 1.6;
+  font-size: 18px;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.modal .btn {
+  min-width: 120px;
+}
+
+.modal .btn.success { border-color: var(--neon-green); color: var(--neon-green); }
+.modal .btn.success:hover { background: var(--neon-green); }
+.modal .btn.danger { border-color: var(--neon-red); color: var(--neon-red); }
+.modal .btn.danger:hover { background: var(--neon-red); }
+
+/* Sound Visualization */
+#sound-viz {
+  position: fixed;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 3px;
+  height: 30px;
+  align-items: flex-end;
+  z-index: 100;
+}
+
+.sound-bar {
+  width: 4px;
+  background: var(--neon-cyan);
+  box-shadow: 0 0 5px var(--neon-cyan);
+  transition: height 0.1s;
+}
+
+/* Notifications */
+#notification {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-panel);
+  border: 1px solid var(--neon-cyan);
+  padding: 10px 20px;
+  z-index: 100;
+  animation: notifyIn 0.3s;
+  box-shadow: 0 0 20px rgba(0, 255, 249, 0.3);
+}
+
+@keyframes notifyIn {
+  from { transform: translateX(-50%) translateY(-20px); opacity: 0; }
+  to { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+
+/* Info tooltip */
+#tooltip {
+  position: fixed;
+  background: var(--bg-panel);
+  border: 1px solid var(--neon-cyan);
+  padding: 10px;
+  font-size: 14px;
+  z-index: 100;
+  display: none;
+  max-width: 200px;
+}
+
+#tooltip h4 {
+  color: var(--neon-cyan);
+  margin-bottom: 5px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-dark); }
+::-webkit-scrollbar-thumb { background: var(--neon-purple); }
+::-webkit-scrollbar-thumb:hover { background: var(--neon-pink); }
+
+/* Mini map for time/weather */
+#time-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#weather-icon {
+  font-size: 20px;
+}
+
+/* Game Paused Overlay */
+#paused-overlay {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 48px;
+  color: var(--neon-red);
+  text-shadow: 0 0 30px var(--neon-red);
+  z-index: 500;
+  display: none;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  #game-container {
+    grid-template-columns: 200px 1fr 220px;
+  }
+  #bottom-panel {
+    flex-direction: column;
+  }
+  #tech-tree {
+    border-right: none;
+    border-bottom: 1px solid var(--neon-green);
+  }
+}
+</style>
+</head>
+<body>
+<div id="game-container">
+  <!-- Header -->
+  <header id="header">
+    <h1 id="title">NEONGRID</h1>
+    <div id="resources">
+      <div class="resource">
+        <span class="resource-icon">💰</span>
+        <span>CREDITS:</span>
+        <span class="resource-value credits" id="credits">1000</span>
+      </div>
+      <div class="resource">
+        <span class="resource-icon">⚡</span>
+        <span>ENERGY:</span>
+        <span class="resource-value energy" id="energy">50/100</span>
+      </div>
+      <div class="resource">
+        <span class="resource-icon">👥</span>
+        <span>POP:</span>
+        <span class="resource-value population" id="population">0</span>
+      </div>
+      <div class="resource">
+        <span class="resource-icon">😊</span>
+        <span>HAPPY:</span>
+        <span class="resource-value happiness" id="happiness">50%</span>
+      </div>
+      <div class="resource">
+        <span class="resource-icon">🔬</span>
+        <span>TECH:</span>
+        <span class="resource-value tech" id="tech">0</span>
+      </div>
+      <div class="resource" id="time-display">
+        <span id="time-icon">☀️</span>
+        <span id="time-of-day">DAY 1</span>
+        <span id="weather-icon">☁️</span>
+      </div>
+    </div>
+    <div id="game-controls">
+      <button class="btn" id="btn-pause">⏸ PAUSE</button>
+      <button class="btn" id="btn-save">💾 SAVE</button>
+      <button class="btn" id="btn-load">📂 LOAD</button>
+    </div>
+  </header>
+
+  <!-- Building Panel -->
+  <aside id="building-panel">
+    <h3>// BUILDINGS //</h3>
+    <div id="building-list"></div>
+  </aside>
+
+  <!-- City View -->
+  <main id="city-view">
+    <div id="city-grid"></div>
+    <div id="daynight-overlay" class="day"></div>
+    <div id="weather-overlay"></div>
+  </main>
+
+  <!-- Event Panel -->
+  <aside id="event-panel">
+    <h3>// LOG //</h3>
+    <div id="event-log"></div>
+  </aside>
+
+  <!-- Bottom Panel -->
+  <footer id="bottom-panel">
+    <div id="tech-tree">
+      <h3>// TECH TREE //</h3>
+      <div id="tech-nodes"></div>
+    </div>
+    <div id="achievements">
+      <h3>// ACHIEVEMENTS //</h3>
+      <div id="achievement-list"></div>
+    </div>
+  </footer>
+</div>
+
+<!-- Modals -->
+<div id="modal-container"></div>
+
+<!-- Sound Visualization -->
+<div id="sound-viz">
+  <div class="sound-bar" style="height: 5px;"></div>
+  <div class="sound-bar" style="height: 5px;"></div>
+  <div class="sound-bar" style="height: 5px;"></div>
+  <div class="sound-bar" style="height: 5px;"></div>
+  <div class="sound-bar" style="height: 5px;"></div>
+  <div class="sound-bar" style="height: 5px;"></div>
+  <div class="sound-bar" style="height: 5px;"></div>
+  <div class="sound-bar" style="height: 5px;"></div>
+</div>
+
+<!-- Paused Overlay -->
+<div id="paused-overlay">▌▌ PAUSED</div>
+
+<!-- Notification -->
+<div id="notification" style="display: none;"></div>
+
+<!-- Tooltip -->
+<div id="tooltip"></div>
+
+<script>
+// ========================================
+// NEONGRID CITY BUILDER - GAME ENGINE
+// ========================================
+
+const GAME_CONFIG = {
+  GRID_WIDTH: 20,
+  GRID_HEIGHT: 15,
+  DAY_LENGTH: 60000, // 1 minute day
+  NIGHT_LENGTH: 240000, // 4 minutes night
+  EVENT_INTERVAL: 30000, // 30 seconds
+  TICK_RATE: 1000, // 1 second
+  AUTO_SAVE_INTERVAL: 60000, // 60 seconds
+};
+
+// ========================================
+// BUILDING DEFINITIONS
+// ========================================
+const BUILDINGS = {
+  residential: {
+    name: "Residential Block",
+    icon: "🏢",
+    cost: 200,
+    energy: -5,
+    population: 25,
+    happiness: 0,
+    credits: 0,
+    tech: 0,
+    ascii: "┌───┐\n│RES│\n└───┘",
+    desc: "Housing for citizens. Provides population capacity.",
+    unlock: null
+  },
+  power: {
+    name: "Power Plant",
+    icon: "⚡",
+    cost: 500,
+    energy: 50,
+    population: 0,
+    happiness: -5,
+    credits: -10,
+    tech: 0,
+    ascii: "┌┬─┐\n│⚡│\n└┴─┘",
+    desc: "Generates energy for your city. Reduces happiness slightly.",
+    unlock: null
+  },
+  commercial: {
+    name: "Commercial Zone",
+    icon: "🏪",
+    cost: 300,
+    energy: -10,
+    population: 0,
+    happiness: 5,
+    credits: 50,
+    tech: 0,
+    ascii: "┌─┬┐\n│$ │\n└─┴┘",
+    desc: "Generates credits from trade. Requires energy.",
+    unlock: null
+  },
+  industrial: {
+    name: "Industrial Zone",
+    icon: "🏭",
+    cost: 400,
+    energy: -15,
+    population: 0,
+    happiness: -10,
+    credits: 80,
+    tech: 0,
+    ascii: "┌─┬┐\n│🏭│\n└─┴┘",
+    desc: "High credit generation but reduces happiness.",
+    unlock: null
+  },
+  police: {
+    name: "Police Station",
+    icon: "🚔",
+    cost: 350,
+    energy: -8,
+    population: 0,
+    happiness: 15,
+    credits: -5,
+    tech: 0,
+    ascii: "┌─┬┐\n│POL│\n└─┴┘",
+    desc: "Increases happiness and protects from crime events.",
+    unlock: null
+  },
+  hospital: {
+    name: "Hospital",
+    icon: "🏥",
+    cost: 600,
+    energy: -20,
+    population: 0,
+    happiness: 20,
+    credits: -15,
+    tech: 0,
+    ascii: "┌─┬┐\n│+ │\n└─┴┘",
+    desc: "Major happiness boost. Required for population growth.",
+    unlock: null
+  },
+  entertainment: {
+    name: "Entertainment Hub",
+    icon: "🎰",
+    cost: 800,
+    energy: -25,
+    population: 0,
+    happiness: 30,
+    credits: 100,
+    tech: 0,
+    ascii: "┌─┬┐\n│♪♪│\n└─┴┘",
+    desc: "Huge happiness and credit boost. Late game essential.",
+    unlock: null
+  },
+  spaceport: {
+    name: "Spaceport",
+    icon: "🚀",
+    cost: 2000,
+    energy: -50,
+    population: 0,
+    happiness: 10,
+    credits: 500,
+    tech: 10,
+    ascii: "┌─┬─┐\n│🚀│\n└─┴─┘",
+    desc: "Massive credit generation. Unlocks end-game content.",
+    unlock: "society_3"
+  },
+  datacenter: {
+    name: "Data Center",
+    icon: "💾",
+    cost: 700,
+    energy: -30,
+    population: 0,
+    happiness: 0,
+    credits: 20,
+    tech: 15,
+    ascii: "┌─┬┐\n│DAT│\n└─┴┘",
+    desc: "Generates tech points. Target for cyber attacks.",
+    unlock: null
+  },
+  water: {
+    name: "Water Treatment",
+    icon: "💧",
+    cost: 250,
+    energy: -5,
+    population: 10,
+    happiness: 5,
+    credits: -5,
+    tech: 0,
+    ascii: "┌─┬┐\n│💧│\n└─┴┘",
+    desc: "Provides clean water. Required for population growth.",
+    unlock: null
+  },
+  transit: {
+    name: "Transit Hub",
+    icon: "🚇",
+    cost: 900,
+    energy: -20,
+    population: 0,
+    happiness: 10,
+    credits: 30,
+    tech: 0,
+    ascii: "┌─┬─┐\n│🚇│\n└─┴─┘",
+    desc: "Boosts all nearby buildings by 20%.",
+    unlock: "infrastructure_2"
+  },
+  research: {
+    name: "Research Lab",
+    icon: "🔬",
+    cost: 1000,
+    energy: -35,
+    population: 0,
+    happiness: 5,
+    credits: 10,
+    tech: 25,
+    ascii: "┌─┬┐\n│R&D│\n└─┴┘",
+    desc: "Generates tech points. Essential for tech tree.",
+    unlock: null
+  },
+  clonefarm: {
+    name: "Clone Farm",
+    icon: "🧬",
+    cost: 1500,
+    energy: -40,
+    population: 100,
+    happiness: -5,
+    credits: -20,
+    tech: 5,
+    ascii: "┌─┬─┐\n│🧬│\n└─┴─┘",
+    desc: "Massive population boost. Late game only.",
+    unlock: "society_2"
+  },
+  billboard: {
+    name: "Neon Billboard",
+    icon: "📺",
+    cost: 150,
+    energy: -2,
+    population: 0,
+    happiness: 0,
+    credits: 25,
+    tech: 0,
+    ascii: "┌───┐\n│♪ ♪│\n└───┘",
+    desc: "Generates credits. Adds to city aesthetic.",
+    unlock: null
+  },
+  defense: {
+    name: "Defense Tower",
+    icon: "🗼",
+    cost: 800,
+    energy: -15,
+    population: 0,
+    happiness: 5,
+    credits: -10,
+    tech: 0,
+    ascii: "┌─┬┐\n│DEF│\n└─┴┘",
+    desc: "Protects from alien invasions and disasters.",
+    unlock: "infrastructure_1"
+  },
+  blackmarket: {
+    name: "Black Market",
+    icon: "⚫",
+    cost: 500,
+    energy: -10,
+    population: 0,
+    happiness: -20,
+    credits: 200,
+    tech: 0,
+    ascii: "┌─┬┐\n│⚫│\n└─┴┘",
+    desc: "Huge credits but reduces happiness significantly.",
+    unlock: "society_1"
+  }
+};
+
+// ========================================
+// TECH TREE DEFINITIONS
+// ========================================
+const TECH_TREE = {
+  infrastructure: {
+    name: "Infrastructure",
+    nodes: [
+      { id: "infrastructure_1", name: "Defensive Grid", cost: 50, desc: "Unlocks Defense Towers", req: null },
+      { id: "infrastructure_2", name: "Metro System", cost: 100, desc: "Unlocks Transit Hubs", req: "infrastructure_1" },
+      { id: "infrastructure_3", name: "Teleporters", cost: 300, desc: "50% boost to all buildings", req: "infrastructure_2" }
+    ]
+  },
+  energy: {
+    name: "Energy",
+    nodes: [
+      { id: "energy_1", name: "Solar Panels", cost: 50, desc: "+25% energy production", req: null },
+      { id: "energy_2", name: "Fusion Reactor", cost: 150, desc: "Doubles energy capacity", req: "energy_1" },
+      { id: "energy_3", name: "Zero-Point", cost: 400, desc: "Unlimited energy", req: "energy_2" }
+    ]
+  },
+  society: {
+    name: "Society",
+    nodes: [
+      { id: "society_1", name: "Underworld Ties", cost: 50, desc: "Unlocks Black Market", req: null },
+      { id: "society_2", name: "Clone Tech", cost: 200, desc: "Unlocks Clone Farms", req: "society_1" },
+      { id: "society_3", name: "Space Program", cost: 350, desc: "Unlocks Spaceport", req: "society_2" }
+    ]
+  }
+};
+
+// ========================================
+// ACHIEVEMENTS DEFINITIONS
+// ========================================
+const ACHIEVEMENTS = [
+  { id: "first_building", name: "First Building", desc: "Place your first building", icon: "🏗️" },
+  { id: "credits_1000", name: "Getting Rich", desc: "Accumulate 1000 credits", icon: "💰" },
+  { id: "pop_100", name: "Growing City", desc: "Reach 100 population", icon: "👥" },
+  { id: "survive_disaster", name: "Disaster Survivor", desc: "Survive your first disaster", icon: "🌋" },
+  { id: "tech_tree", name: "Tech Master", desc: "Research all tech", icon: "🔬" },
+  { id: "happiness_100", name: "Utopia", desc: "Reach 100% happiness", icon: "😊" },
+  { id: "credits_10000", name: "Mega Tycoon", desc: "Accumulate 10000 credits", icon: "🤑" },
+  { id: "all_buildings", name: "Architect", desc: "Build all building types", icon: "🏙️" },
+  { id: "alien_invasion", name: "X-Fighter", desc: "Survive alien invasion", icon: "👽" },
+  { id: "spaceport", name: "To The Stars", desc: "Build a Spaceport", icon: "🚀" },
+  { id: "max_tech", name: "Transcendence", desc: "Reach max tech level", icon: "🌟" },
+  { id: "streak_10", name: "Dedicated Mayor", desc: "Play for 10 days", icon: "📅" },
+  { id: "neon_master", name: "Neon Master", desc: "Build 10 Neon Billboards", icon: "📺" },
+  { id: "city_planner", name: "City Planner", desc: "Build 10 buildings", icon: "📐" },
+  { id: "legend", name: "Cyberpunk Legend", desc: "Unlock all other achievements", icon: "🏆" }
+];
+
+// ========================================
+// RANDOM EVENTS
+// ========================================
+const RANDOM_EVENTS = [
+  {
+    id: "power_outage",
+    name: "Power Outage",
+    desc: "A cyber attack has caused a city-wide power outage! Some buildings have lost power.",
+    choices: [
+      { text: "Emergency Repairs", effect: () => { game.credits -= 100; addEvent("Emergency repairs cost 100 credits", "warning"); } },
+      { text: "Ride it out", effect: () => { game.happiness -= 15; addEvent("Citizens are unhappy about the blackout", "warning"); } }
+    ]
+  },
+  {
+    id: "alien_invasion",
+    name: "Alien Invasion",
+    desc: "aliens have landed! They demand tribute or face destruction!",
+    choices: [
+      { text: "Fight back", effect: () => { 
+        const defense = game.buildings.filter(b => b.type === 'defense').length;
+        if (defense >= 2) {
+          game.credits += 2000;
+          game.happiness += 20;
+          unlockAchievement("alien_invasion");
+          addEvent("Defense towers repelled the aliens! +2000 credits!", "success");
+        } else {
+          game.credits -= 500;
+          game.happiness -= 30;
+          addEvent("Your defenses were overwhelmed! -500 credits", "warning");
+        }
+      }},
+      { text: "Surrender", effect: () => { game.credits -= 1000; addEvent("You paid the alien tribute. -1000 credits", "warning"); } }
+    ]
+  },
+  {
+    id: "trade_deal",
+    name: "Trade Deal",
+    desc: "A megacorp wants to establish a trade route through your city.",
+    choices: [
+      { text: "Accept", effect: () => { game.credits += 500; addEvent("Trade deal accepted! +500 credits", "success"); } },
+      { text: "Decline", effect: () => { addEvent("You declined the trade deal", "info"); } }
+    ]
+  },
+  {
+    id: "cyber_attack",
+    name: "Cyber Attack",
+    desc: "Hackers are targeting your data centers!",
+    choices: [
+      { text: "Counter-attack", effect: () => { 
+        if (game.buildings.filter(b => b.type === 'defense').length > 0) {
+          game.tech += 50;
+          addEvent("Counter-attack successful! +50 tech points", "success");
+        } else {
+          game.credits -= 200;
+          addEvent("No defense! -200 credits", "warning");
+        }
+      }},
+      { text: "Pay ransom", effect: () => { game.credits -= 300; addEvent("You paid the ransom. -300 credits", "warning"); } }
+    ]
+  },
+  {
+    id: "riot",
+    name: "Riot",
+    desc: "Citizens are rioting in the streets! Low happiness has caused chaos.",
+    choices: [
+      { text: "Deploy police", effect: () => { 
+        if (game.buildings.filter(b => b.type === 'police').length > 0) {
+          game.happiness += 10;
+          addEvent("Police contained the riot!", "success");
+        } else {
+          game.happiness -= 20;
+          game.credits -= 200;
+          addEvent("No police! The riot caused damage!", "warning");
+        }
+      }},
+      { text: "Negotiate", effect: () => { game.credits -= 150; game.happiness += 5; addEvent("Negotiations cost 150 credits", "info"); } }
+    ]
+  },
+  {
+    id: "disease",
+    name: "Disease Outbreak",
+    desc: "A mysterious illness is spreading through the city!",
+    choices: [
+      { text: "Quarantine", effect: () => { 
+        if (game.buildings.filter(b => b.type === 'hospital').length > 0) {
+          game.credits -= 100;
+          addEvent("Hospitals managed the outbreak. -100 credits", "info");
+        } else {
+          game.population = Math.floor(game.population * 0.7);
+          game.happiness -= 20;
+          addEvent("No hospitals! Population decimated!", "warning");
+        }
+      }},
+      { text: "Ignore", effect: () => { game.population = Math.floor(game.population * 0.5); game.happiness -= 30; addEvent("Population severely affected by disease!", "warning"); } }
+    ]
+  },
+  {
+    id: "meteor",
+    name: "Meteor Shower",
+    desc: "A meteor shower is approaching! Defense needed!",
+    choices: [
+      { text: "Shoot them down", effect: () => { 
+        const defense = game.buildings.filter(b => b.type === 'defense').length;
+        if (defense >= 1) {
+          game.credits += 800;
+          addEvent("Meteors destroyed! +800 credits", "success");
+        } else {
+          game.credits -= 300;
+          addEvent("No defenses! Meteors hit the city!", "warning");
+        }
+      }},
+      { text: "Evacuate", effect: () => { game.credits -= 400; addEvent("Evacuation cost 400 credits", "warning"); } }
+    ]
+  },
+  {
+    id: "black_market_deal",
+    name: "Black Market Offer",
+    desc: "A shady contact offers illegal goods for sale.",
+    choices: [
+      { text: "Buy", effect: () => { 
+        if (Math.random() > 0.5) {
+          game.credits += 1000;
+          addEvent("Profited 1000 credits from the deal!", "success");
+        } else {
+          game.credits -= 500;
+          addEvent("It was a scam! -500 credits", "warning");
+        }
+      }},
+      { text: "Report to police", effect: () => { game.happiness += 10; addEvent("Police appreciate the tip! +10 happiness", "success"); } }
+    ]
+  },
+  {
+    id: "corporate_takeover",
+    name: "Corporate Takeover",
+    desc: "A megacorp wants to buy one of your buildings.",
+    choices: [
+      { text: "Sell", effect: () => { game.credits += 1500; addEvent("Sold building for 1500 credits!", "success"); game.buildings.pop(); }},
+      { text: "Refuse", effect: () => { addEvent("You kept your building", "info"); } }
+    ]
+  },
+  {
+    id: "neon_festival",
+    name: "Neon Festival",
+    desc: "It's time for the annual Neon Festival! The city comes alive!",
+    choices: [
+      { text: "Sponsor", effect: () => { game.credits -= 200; game.happiness += 25; addEvent("Amazing festival! +25 happiness", "success"); }},
+      { text: "Let it happen", effect: () => { game.happiness += 10; addEvent("Festival was okay. +10 happiness", "info"); } }
+    ]
+  },
+  {
+    id: "mega_storm",
+    name: "Mega Storm",
+    desc: "A massive storm is hitting the city!",
+    choices: [
+      { text: "Emergency measures", effect: () => { game.credits -= 300; addEvent("Emergency response cost 300 credits", "info"); }},
+      { text: "Hunker down", effect: () => { game.credits -= 100; game.happiness -= 10; addEvent("Storm caused some damage", "warning"); } }
+    ]
+  },
+  {
+    id: "tech_breakthrough",
+    name: "Tech Breakthrough",
+    desc: "Your research labs have made a discovery!",
+    choices: [
+      { text: "Patent it", effect: () => { game.tech += 100; addEvent("Huge breakthrough! +100 tech!", "success"); }},
+      { text: "Open source", effect: () => { game.happiness += 15; game.tech += 30; addEvent("Scientific community celebrates! +15 happy, +30 tech", "success"); } }
+    ]
+  }
+];
+
+// ========================================
+// GAME STATE
+// ========================================
+let game = {
+  credits: 1000,
+  energy: 50,
+  energyMax: 100,
+  population: 0,
+  happiness: 50,
+  tech: 0,
+  day: 1,
+  timeOfDay: "day", // day, night
+  weather: "clear", // clear, rain, storm, snow
+  paused: false,
+  selectedBuilding: null,
+  buildings: [],
+  techResearched: [],
+  achievements: [],
+  vehicles: [],
+  lastEvent: 0,
+  lastSave: 0,
+  gameTime: 0,
+  buildingCounts: {},
+  events: []
+};
+
+// ========================================
+// AUDIO ENGINE
+// ========================================
+const AudioEngine = {
+  ctx: null,
+  
+  init() {
+    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+  },
+  
+  playTone(freq, duration, type = 'square') {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+    
+    gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+    
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    
+    osc.start();
+    osc.stop(this.ctx.currentTime + duration);
+  },
+  
+  playPlace() {
+    this.playTone(880, 0.1);
+    setTimeout(() => this.playTone(1100, 0.1), 50);
+  },
+  
+  playEvent() {
+    this.playTone(440, 0.2);
+    setTimeout(() => this.playTone(550, 0.2), 100);
+    setTimeout(() => this.playTone(660, 0.3), 200);
+  },
+  
+  playWarning() {
+    this.playTone(200, 0.3, 'sawtooth');
+  },
+  
+  playSuccess() {
+    this.playTone(523, 0.15);
+    setTimeout(() => this.playTone(659, 0.15), 100);
+    setTimeout(() => this.playTone(784, 0.2), 200);
+  },
+  
+  playTech() {
+    this.playTone(330, 0.1);
+    setTimeout(() => this.playTone(440, 0.1), 80);
+    setTimeout(() => this.playTone(550, 0.1), 160);
+    setTimeout(() => this.playTone(660, 0.2), 240);
+  },
+  
+  updateViz(intensity) {
+    const bars = document.querySelectorAll('.sound-bar');
+    bars.forEach((bar, i) => {
+      const height = Math.random() * intensity * 25 + 5;
+      bar.style.height = height + 'px';
+    });
+  }
+};
+
+// ========================================
+// INITIALIZATION
+// ========================================
+function init() {
+  createGrid();
+  createBuildingPanel();
+  createTechTree();
+  createAchievements();
+  setupEventListeners();
+  startGameLoop();
+  addEvent("Welcome to NeonGrid City Builder!", "info");
+  unlockAchievement("first_building"); // Will be replaced when real building placed
+  game.achievements = []; // Reset
+}
+
+function createGrid() {
+  const grid = document.getElementById('city-grid');
+  grid.innerHTML = '';
+  grid.style.gridTemplateColumns = `repeat(${GAME_CONFIG.GRID_WIDTH}, 1fr)`;
+  grid.style.gridTemplateRows = `repeat(${GAME_CONFIG.GRID_HEIGHT}, 1fr)`;
+  
+  for (let y = 0; y < GAME_CONFIG.GRID_HEIGHT; y++) {
+    for (let x = 0; x < GAME_CONFIG.GRID_WIDTH; x++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell empty';
+      cell.dataset.x = x;
+      cell.dataset.y = y;
+      cell.textContent = '·';
+      cell.addEventListener('click', () => placeBuilding(x, y));
+      cell.addEventListener('mouseenter', (e) => showTooltip(e, x, y));
+      cell.addEventListener('mouseleave', hideTooltip);
+      grid.appendChild(cell);
+    }
+  }
+}
+
+function createBuildingPanel() {
+  const list = document.getElementById('building-list');
+  list.innerHTML = '';
+  
+  let keyNum = 1;
+  for (const [id, building] of Object.entries(BUILDINGS)) {
+    if (building.unlock && !game.techResearched.includes(building.unlock)) continue;
+    
+    const item = document.createElement('div');
+    item.className = 'building-item';
+    item.dataset.type = id;
+    item.innerHTML = `
+      <span class="building-icon">${building.icon}</span>
+      <div class="building-info">
+        <div class="building-name">${building.name}</div>
+        <div class="building-cost">💰 ${building.cost}</div>
+      </div>
+      <span class="building-key">[${keyNum}]</span>
+    `;
+    item.addEventListener('click', () => selectBuilding(id));
+    list.appendChild(item);
+    keyNum++;
+  }
+}
+
+function createTechTree() {
+  const container = document.getElementById('tech-nodes');
+  container.innerHTML = '';
+  
+  for (const [branchId, branch] of Object.entries(TECH_TREE)) {
+    const branchDiv = document.createElement('div');
+    branchDiv.style.marginBottom = '15px';
+    branchDiv.innerHTML = `<span style="color: var(--neon-cyan)">${branch.name}:</span> `;
+    
+    branch.nodes.forEach((node, idx) => {
+      const nodeEl = document.createElement('span');
+      const isResearched = game.techResearched.includes(node.id);
+      const reqMet = !node.req || game.techResearched.includes(node.req);
+      
+      nodeEl.className = `tech-node ${isResearched ? 'researched' : ''} ${!reqMet ? 'locked' : ''} ${reqMet && !isResearched ? 'current' : ''}`;
+      nodeEl.textContent = node.name;
+      nodeEl.title = node.desc + (node.cost ? ` (${node.cost} tech)` : '');
+      
+      if (reqMet && !isResearched) {
+        nodeEl.addEventListener('click', () => researchTech(node));
+      }
+      
+      branchDiv.appendChild(nodeEl);
+    });
+    
+    container.appendChild(branchDiv);
+  }
+}
+
+function createAchievements() {
+  const list = document.getElementById('achievement-list');
+  list.innerHTML = '';
+  
+  ACHIEVEMENTS.forEach(ach => {
+    const unlocked = game.achievements.includes(ach.id);
+    const el = document.createElement('div');
+    el.className = `achievement ${unlocked ? 'unlocked' : ''}`;
+    el.innerHTML = `
+      <span class="achievement-icon">${unlocked ? ach.icon : '🔒'}</span>
+      <div>
+        <div class="achievement-name">${unlocked ? ach.name : '???'}</div>
+      </div>
+    `;
+    list.appendChild(el);
+  });
+}
+
+function setupEventListeners() {
+  document.getElementById('btn-pause').addEventListener('click', togglePause);
+  document.getElementById('btn-save').addEventListener('click', saveGame);
+  document.getElementById('btn-load').addEventListener('click', loadGame);
+  
+  document.addEventListener('keydown', (e) => {
+    if (e.key >= '1' && e.key <= '9') {
+      const buildings = Object.keys(BUILDINGS);
+      const idx = parseInt(e.key) - 1;
+      if (idx < buildings.length) {
+        selectBuilding(buildings[idx]);
+      }
+    }
+    if (e.key === 's' || e.key === 'S') saveGame();
+    if (e.key === 'l' || e.key === 'L') loadGame();
+    if (e.key === ' ') { e.preventDefault(); togglePause(); }
+    if (e.key === 'Escape') game.selectedBuilding = null;
+    updateBuildingPanel();
+  });
+}
+
+// ========================================
+// GAME LOOP
+// ========================================
+function startGameLoop() {
+  setInterval(() => {
+    if (!game.paused) {
+      gameTick();
+    }
+  }, GAME_CONFIG.TICK_RATE);
+  
+  // Weather update
+  setInterval(updateWeather, 10000);
+  
+  // Day/night cycle
+  setInterval(updateDayNight, 1000);
+  
+  // Random events
+  setInterval(checkRandomEvent, GAME_CONFIG.EVENT_INTERVAL);
+  
+  // Auto save
+  setInterval(autoSave, GAME_CONFIG.AUTO_SAVE_INTERVAL);
+  
+  // Traffic
+  setInterval(updateTraffic, 2000);
+}
+
+function gameTick() {
+  game.gameTime++;
+  
+  // Calculate resources from buildings
+  let creditGen = 0;
+  let energyGen = 0;
+  let popCap = 0;
+  let happyMod = 0;
+  
+  game.buildings.forEach(b => {
+    const def = BUILDINGS[b.type];
+    if (def) {
+      creditGen += def.credits || 0;
+      energyGen += def.energy || 0;
+      popCap += def.population || 0;
+      happyMod += def.happiness || 0;
+    }
+  });
+  
+  // Apply tech bonuses
+  if (game.techResearched.includes('energy_1')) energyGen = Math.floor(energyGen * 1.25);
+  if (game.techResearched.includes('energy_2')) game.energyMax = 200;
+  if (game.techResearched.includes('energy_3')) game.energyMax = 9999;
+  if (game.techResearched.includes('infrastructure_3')) {
+    creditGen = Math.floor(creditGen * 1.5);
+    energyGen = Math.floor(energyGen * 1.5);
+  }
+  
+  // Weather effects
+  if (game.weather === 'storm') {
+    creditGen = Math.floor(creditGen * 0.7);
+    happyMod -= 5;
+  }
+  
+  game.credits += creditGen;
+  game.energy = Math.min(game.energyMax, Math.max(0, game.energy + energyGen));
+  
+  // Population growth
+  if (game.population < popCap && game.buildings.some(b => b.type === 'water')) {
+    if (Math.random() < 0.1) game.population++;
+  }
+  
+  // Happiness
+  game.happiness = Math.min(100, Math.max(0, game.happiness + happyMod));
+  
+  // Update UI
+  updateResources();
+  updateCityGrid();
+  checkAchievements();
+  
+  // Update day counter
+  if (game.gameTime % 60 === 0) {
+    game.day++;
+    document.getElementById('time-of-day').textContent = `DAY ${game.day}`;
+  }
+}
+
+function updateDayNight() {
+  if (game.paused) return;
+  
+  const cyclePos = (Date.now() % (GAME_CONFIG.DAY_LENGTH + GAME_CONFIG.NIGHT_LENGTH));
+  const overlay = document.getElementById('daynight-overlay');
+  const icon = document.getElementById('time-icon');
+  
+  if (cyclePos < GAME_CONFIG.DAY_LENGTH) {
+    game.timeOfDay = 'day';
+    overlay.className = 'day';
+    icon.textContent = '☀️';
+  } else if (cyclePos < GAME_CONFIG.DAY_LENGTH + 10000) {
+    overlay.className = 'twilight';
+    icon.textContent = '🌆';
+  } else {
+    game.timeOfDay = 'night';
+    overlay.className = 'night';
+    icon.textContent = '🌙';
+  }
+}
+
+function updateWeather() {
+  if (game.paused) return;
+  
+  const weathers = ['clear', 'clear', 'rain', 'rain', 'storm', 'snow'];
+  const weights = [0.4, 0.4, 0.1, 0.1, 0.05, 0.05];
+  let r = Math.random();
+  
+  for (let i = 0; i < weathers.length; i++) {
+    r -= weights[i];
+    if (r <= 0) {
+      game.weather = weathers[i];
+      break;
+    }
+  }
+  
+  const icon = document.getElementById('weather-icon');
+  icon.textContent = game.weather === 'clear' ? '☁️' : 
+                     game.weather === 'rain' ? '🌧️' : 
+                     game.weather === 'storm' ? '⛈️' : '❄️';
+  
+  updateWeatherParticles();
+}
+
+function updateWeatherParticles() {
+  const overlay = document.getElementById('weather-overlay');
+  overlay.innerHTML = '';
+  
+  if (game.weather === 'clear') return;
+  
+  const count = game.weather === 'storm' ? 50 : 20;
+  const char = game.weather === 'rain' ? '|' : 
+               game.weather === 'storm' ? '⚡' : '*';
+  
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    p.className = 'weather-particle';
+    p.textContent = char;
+    p.style.left = Math.random() * 100 + '%';
+    p.style.animationDuration = (Math.random() * 2 + 1) + 's';
+    p.style.opacity = Math.random() * 0.5 + 0.3;
+    overlay.appendChild(p);
+  }
+}
+
+function updateTraffic() {
+  if (game.paused) return;
+  
+  // Simple traffic - just show random vehicles
+  const grid = document.getElementById('city-grid');
+  const cells = grid.querySelectorAll('.cell.road');
+  
+  cells.forEach(cell => {
+    cell.textContent = Math.random() > 0.9 ? (Math.random() > 0.5 ? '🚗' : '🚕') : '·';
+  });
+}
+
+// ========================================
+// BUILDING SYSTEM
+// ========================================
+function selectBuilding(type) {
+  game.selectedBuilding = type;
+  updateBuildingPanel();
+  AudioEngine.playTone(440, 0.05);
+}
+
+function updateBuildingPanel() {
+  document.querySelectorAll('.building-item').forEach(item => {
+    item.classList.toggle('selected', item.dataset.type === game.selectedBuilding);
+  });
+}
+
+function placeBuilding(x, y) {
+  if (!game.selectedBuilding) return;
+  
+  const building = BUILDINGS[game.selectedBuilding];
+  
+  if (game.credits < building.cost) {
+    showNotification("Not enough credits!", "warning");
+    AudioEngine.playWarning();
+    return;
+  }
+  
+  // Check energy
+  if (game.energy + building.energy < 0) {
+    showNotification("Not enough energy!", "warning");
+    AudioEngine.playWarning();
+    return;
+  }
+  
+  // Place building
+  game.credits -= building.cost;
+  game.buildings.push({ type: game.selectedBuilding, x, y });
+  
+  // Update building counts
+  game.buildingCounts[game.selectedBuilding] = (game.buildingCounts[game.selectedBuilding] || 0) + 1;
+  
+  // Update cell
+  const cell = document.querySelector(`.cell[data-x="${x}"][data-y="${y}"]`);
+  cell.className = `cell building`;
+  cell.dataset.type = game.selectedBuilding;
+  cell.innerHTML = `<div class="building-ascii">${building.ascii}</div>`;
+  
+  AudioEngine.playPlace();
+  AudioEngine.updateViz(0.8);
+  
+  addEvent(`Built ${building.name} at (${x},${y})`, "success");
+  
+  // Replace achievement
+  if (game.achievements.includes("first_building")) {
+    game.achievements = game.achievements.filter(a => a !== "first_building");
+  }
+  unlockAchievement("first_building");
+  
+  updateResources();
+}
+
+function updateCityGrid() {
+  game.buildings.forEach(b => {
+    const cell = document.querySelector(`.cell[data-x="${b.x}"][data-y="${b.y}"]`);
+    if (cell && cell.dataset.type !== b.type) {
+      const def = BUILDINGS[b.type];
+      cell.className = `cell building`;
+      cell.dataset.type = b.type;
+      cell.innerHTML = `<div class="building-ascii">${def.ascii}</div>`;
+    }
+  });
+}
+
+// ========================================
+// TECH SYSTEM
+// ========================================
+function researchTech(node) {
+  if (game.tech < node.cost) {
+    showNotification("Not enough tech points!", "warning");
+    AudioEngine.playWarning();
+    return;
+  }
+  
+  game.tech -= node.cost;
+  game.techResearched.push(node.id);
+  
+  AudioEngine.playTech();
+  AudioEngine.updateViz(1);
+  
+  addEvent(`Researched: ${node.name}`, "success");
+  createTechTree();
+  createBuildingPanel(); // Refresh to show unlocked buildings
+  updateResources();
+}
+
+function unlockAchievement(id) {
+  if (!game.achievements.includes(id)) {
+    game.achievements.push(id);
+    createAchievements();
+    AudioEngine.playSuccess();
+    
+    const ach = ACHIEVEMENTS.find(a => a.id === id);
+    if (ach) {
+      showNotification(`Achievement Unlocked: ${ach.name}!`, "success");
+    }
+  }
+}
+
+function checkAchievements() {
+  if (game.credits >= 1000) unlockAchievement("credits_1000");
+  if (game.credits >= 10000) unlockAchievement("credits_10000");
+  if (game.population >= 100) unlockAchievement("pop_100");
+  if (game.happiness >= 100) unlockAchievement("happiness_100");
+  
+  const buildingTypes = [...new Set(game.buildings.map(b => b.type))];
+  if (buildingTypes.length >= 16) unlockAchievement("all_buildings");
+  if (game.buildings.length >= 10) unlockAchievement("city_planner");
+  if ((game.buildingCounts.billboard || 0) >= 10) unlockAchievement("neon_master");
+  if (game.buildings.some(b => b.type === 'spaceport')) unlockAchievement("spaceport");
+  if (game.techResearched.length >= 9) unlockAchievement("tech_tree");
+  if (game.day >= 10) unlockAchievement("streak_10");
+  
+  // Legend - all others
+  const others = ACHIEVEMENTS.filter(a => a.id !== 'legend').map(a => a.id);
+  if (others.every(a => game.achievements.includes(a))) unlockAchievement("legend");
+}
+
+// ========================================
+// RANDOM EVENTS
+// ========================================
+function checkRandomEvent() {
+  if (game.paused) return;
+  if (Date.now() - game.lastEvent < GAME_CONFIG.EVENT_INTERVAL) return;
+  if (game.buildings.length < 3) return;
+  
+  game.lastEvent = Date.now();
+  
+  const event = RANDOM_EVENTS[Math.floor(Math.random() * RANDOM_EVENTS.length)];
+  showEventModal(event);
+  AudioEngine.playEvent();
+  AudioEngine.updateViz(1);
+}
+
+function showEventModal(event) {
+  const container = document.getElementById('modal-container');
+  container.innerHTML = `
+    <div class="modal-overlay">
+      <div class="modal">
+        <h2>⚠️ ${event.name}</h2>
+        <p>${event.desc}</p>
+        <div class="modal-buttons">
+          ${event.choices.map((c, i) => 
+            `<button class="btn ${i === 0 ? 'success' : 'danger'}" onclick="handleEventChoice('${event.id}', ${i})">${c.text}</button>`
+          ).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function handleEventChoice(eventId, choiceIdx) {
+  const event = RANDOM_EVENTS.find(e => e.id === eventId);
+  if (event && event.choices[choiceIdx]) {
+    event.choices[choiceIdx].effect();
+  }
+  
+  document.getElementById('modal-container').innerHTML = '';
+  
+  // Check disaster survival
+  if (['power_outage', 'meteor', 'alien_invasion'].includes(eventId)) {
+    unlockAchievement("survive_disaster");
+  }
+}
+
+// ========================================
+// UI HELPERS
+// ========================================
+function updateResources() {
+  document.getElementById('credits').textContent = game.credits;
+  document.getElementById('energy').textContent = `${game.energy}/${game.energyMax}`;
+  document.getElementById('population').textContent = game.population;
+  document.getElementById('happiness').textContent = game.happiness + '%';
+  document.getElementById('tech').textContent = game.tech;
+}
+
+function addEvent(message, type = "info") {
+  const log = document.getElementById('event-log');
+  const entry = document.createElement('div');
+  entry.className = `event-entry ${type}`;
+  entry.innerHTML = `
+    <div>${message}</div>
+    <div class="event-time">${new Date().toLocaleTimeString()}</div>
+  `;
+  log.insertBefore(entry, log.firstChild);
+  
+  // Keep only last 50 events
+  while (log.children.length > 50) {
+    log.removeChild(log.lastChild);
+  }
+}
+
+function showNotification(message, type = "info") {
+  const notif = document.getElementById('notification');
+  notif.textContent = message;
+  notif.style.display = 'block';
+  notif.style.borderColor = type === 'warning' ? 'var(--neon-red)' : 
+                             type === 'success' ? 'var(--neon-green)' : 'var(--neon-cyan)';
+  
+  setTimeout(() => {
+    notif.style.display = 'none';
+  }, 3000);
+}
+
+function showTooltip(e, x, y) {
+  const existing = game.buildings.find(b => b.x === x && b.y === y);
+  if (!existing || !game.selectedBuilding) return;
+  
+  const tooltip = document.getElementById('tooltip');
+  const building = BUILDINGS[game.selectedBuilding];
+  
+  tooltip.innerHTML = `
+    <h4>${building.name}</h4>
+    <p>${building.desc}</p>
+    <p>Cost: ${building.cost} | Energy: ${building.energy > 0 ? '+' : ''}${building.energy}</p>
+  `;
+  tooltip.style.display = 'block';
+  tooltip.style.left = (e.clientX + 10) + 'px';
+  tooltip.style.top = (e.clientY + 10) + 'px';
+}
+
+function hideTooltip() {
+  document.getElementById('tooltip').style.display = 'none';
+}
+
+function togglePause() {
+  game.paused = !game.paused;
+  document.getElementById('paused-overlay').style.display = game.paused ? 'block' : 'none';
+  document.getElementById('btn-pause').textContent = game.paused ? '▶ PLAY' : '⏸ PAUSE';
+}
+
+// ========================================
+// SAVE/LOAD SYSTEM
+// ========================================
+function saveGame() {
+  const saveData = {
+    credits: game.credits,
+    energy: game.energy,
+    energyMax: game.energyMax,
+    population: game.population,
+    happiness: game.happiness,
+    tech: game.tech,
+    day: game.day,
+    buildings: game.buildings,
+    techResearched: game.techResearched,
+    achievements: game.achievements,
+    buildingCounts: game.buildingCounts,
+    gameTime: game.gameTime,
+    timestamp: Date.now()
+  };
+  
+  const blob = new Blob([JSON.stringify(saveData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `neongrid_save_${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  
+  showNotification("Game saved!", "success");
+  AudioEngine.playSuccess();
+  addEvent("Game saved to file", "success");
+}
+
+function loadGame() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    try {
+      const text = await file.text();
+      const saveData = JSON.parse(text);
+      
+      game.credits = saveData.credits || 1000;
+      game.energy = saveData.energy || 50;
+      game.energyMax = saveData.energyMax || 100;
+      game.population = saveData.population || 0;
+      game.happiness = saveData.happiness || 50;
+      game.tech = saveData.tech || 0;
+      game.day = saveData.day || 1;
+      game.buildings = saveData.buildings || [];
+      game.techResearched = saveData.techResearched || [];
+      game.achievements = saveData.achievements || [];
+      game.buildingCounts = saveData.buildingCounts || {};
+      game.gameTime = saveData.gameTime || 0;
+      
+      // Rebuild grid
+      createGrid();
+      updateCityGrid();
+      createTechTree();
+      createAchievements();
+      createBuildingPanel();
+      updateResources();
+      
+      showNotification("Game loaded!", "success");
+      AudioEngine.playSuccess();
+      addEvent("Game loaded from file", "success");
+    } catch (err) {
+      showNotification("Error loading save file!", "warning");
+      AudioEngine.playWarning();
+    }
+  };
+  input.click();
+}
+
+function autoSave() {
+  // Just update last save time for display
+  game.lastSave = Date.now();
+}
+
+// ========================================
+// START THE GAME
+// ========================================
+window.addEventListener('load', init);
+</script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeonGrid City Builder // Cyberpunk Terminal</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="game-container">
+  <!-- Header -->
+  <header id="header">
+    <h1 id="title">NEONGRID</h1>
+    <div id="resources">
+      <div class="resource">
+        <span class="resource-icon">💰</span>
+        <span>CREDITS:</span>
+        <span class="resource-value credits" id="credits">1000</span>
+      </div>
+      <div class="resource">
+        <span class="resource-icon">⚡</span>
+        <span>ENERGY:</span>
+        <span class="resource-value energy" id="energy">50/100</span>
+      </div>
+      <div class="resource">
+        <span class="resource-icon">👥</span>
+        <span>POP:</span>
+        <span class="resource-value population" id="population">0</span>
+      </div>
+      <div class="resource">
+        <span class="resource-icon">😊</span>
+        <span>HAPPY:</span>
+        <span class="resource-value happiness" id="happiness">50%</span>
+      </div>
+      <div class="resource">
+        <span class="resource-icon">🔬</span>
+        <span>TECH:</span>
+        <span class="resource-value tech" id="tech">0</span>
+      </div>
+      <div class="resource" id="time-display">
+        <span id="time-icon">☀️</span>
+        <span id="time-of-day">DAY 1</span>
+        <span id="weather-icon">☁️</span>
+      </div>
+    </div>
+    <div id="game-controls">
+      <button class="btn" id="btn-pause">⏸ PAUSE</button>
+      <button class="btn" id="btn-save">💾 SAVE</button>
+      <button class="btn" id="btn-load">📂 LOAD</button>
+    </div>
+  </header>
+
+  <!-- Building Panel -->
+  <aside id="building-panel">
+    <h3>// BUILDINGS //</h3>
+    <div id="building-list"></div>
+  </aside>
+
+  <!-- City View -->
+  <main id="city-view">
+    <div id="city-grid"></div>
+    <div id="daynight-overlay" class="day"></div>
+    <div id="weather-overlay"></div>
+  </main>
+
+  <!-- Event Panel -->
+  <aside id="event-panel">
+    <h3>// LOG //</h3>
+    <div id="event-log"></div>
+  </aside>
+
+  <!-- Bottom Panel -->
+  <footer id="bottom-panel">
+    <div id="tech-tree">
+      <h3>// TECH TREE //</h3>
+      <div id="tech-nodes"></div>
+    </div>
+    <div id="achievements">
+      <h3>// ACHIEVEMENTS //</h3>
+      <div id="achievement-list"></div>
+    </div>
+  </footer>
+</div>
+
+<!-- Modals -->
+<div id="modal-container"></div>
+
+<!-- Sound Visualization -->
+<div id="sound-viz">
+  <div class="sound-bar" style="height: 5px;"></div>
+  <div class="sound-bar" style="height: 5px;"></div>
+  <div class="sound-bar" style="height: 5px;"></div>
+  <div class="sound-bar" style="height: 5px;"></div>
+  <div class="sound-bar" style="height: 5px;"></div>
+  <div class="sound-bar" style="height: 5px;"></div>
+  <div class="sound-bar" style="height: 5px;"></div>
+  <div class="sound-bar" style="height: 5px;"></div>
+</div>
+
+<!-- Paused Overlay -->
+<div id="paused-overlay">▌▌ PAUSED</div>
+
+<!-- Notification -->
+<div id="notification" style="display: none;"></div>
+
+<!-- Tooltip -->
+<div id="tooltip"></div>
+
+<script src="js/game.js"></script>
+</body>
+</html>
