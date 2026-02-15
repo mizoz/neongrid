@@ -1,6 +1,10 @@
 # Neongrid City Builder
 
-Build your cyberpunk metropolis in this terminal-style city tycoon game. Manage resources, survive disasters, research tech, and become a legend!
+[![GitHub Stars](https://img.shields.io/github/stars/mizoz/Neongrid-city-builder?style=flat-square)](https://github.com/mizoz/Neongrid-city-builder)
+[![License](https://img.shields.io/github/license/mizoz/Neongrid-city-builder?style=flat-square)](LICENSE)
+[![GitHub Forks](https://img.shields.io/github/forks/mizoz/Neongrid-city-builder?style=flat-square)](https://github.com/mizoz/Neongrid-city-builder/network)
+
+> Build your cyberpunk metropolis in this terminal-style city tycoon game. Manage resources, survive disasters, research tech, and become a legend!
 
 ## Features
 
@@ -23,7 +27,7 @@ Build your cyberpunk metropolis in this terminal-style city tycoon game. Manage 
 ```bash
 git clone https://github.com/mizoz/Neongrid-city-builder.git
 cd Neongrid-city-builder
-python -m pip install -r requirements.txt
+pip install -r requirements.txt
 python main.py
 ```
 
@@ -69,10 +73,22 @@ Experience the neon-lit aesthetic of a cyberpunk city builder!
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Open a Pull Request
+
 ## License
 
-MIT License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Author
 
-mizoz
+**mizoz**
+- GitHub: [@mizoz](https://github.com/mizoz)
+
+---
+
+⭐ If you find this project useful, please consider giving it a star on GitHub!
+
