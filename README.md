@@ -1,94 +1,66 @@
-# Neongrid City Builder
+# NeonGrid
 
-[![GitHub Stars](https://img.shields.io/github/stars/mizoz/Neongrid-city-builder?style=flat-square)](https://github.com/mizoz/Neongrid-city-builder)
-[![License](https://img.shields.io/github/license/mizoz/Neongrid-city-builder?style=flat-square)](LICENSE)
-[![GitHub Forks](https://img.shields.io/github/forks/mizoz/Neongrid-city-builder?style=flat-square)](https://github.com/mizoz/Neongrid-city-builder/network)
+A cyberpunk city-builder that runs in the browser, written in plain HTML, CSS and JavaScript with no frameworks or build step. Place buildings on a grid, balance credits, energy, population and happiness, survive random events, and research upgrades through a small tech tree.
 
-> Build your cyberpunk metropolis in this terminal-style city tycoon game. Manage resources, survive disasters, research tech, and become a legend!
+**Play it:** https://mizoz.github.io/neongrid/
+
+![NeonGrid gameplay screenshot](docs/screenshot.png)
 
 ## Features
 
-- **Terminal-style graphics** - Immerse yourself in a retro-futuristic aesthetic
-- **Resource management** - Balance power, food, population, and economy
-- **Random events** - Face disasters, alien invasions, and tech breakthroughs
-- **Research system** - Unlock new buildings and technologies
-- **Neon-lit skyscrapers** - Build and customize your cyberpunk city
-- **Day/night cycle** - Watch your city transform
+- **16 building types**, each with its own cost, upkeep and effect on energy, population, happiness, credits and tech
+- **Real-time simulation** on a one-second tick: income, energy balance, population growth and happiness
+- **Day/night cycle and weather** (clear, rain, storms, snow)
+- **12 random events**, including power outages, cyber attacks, alien invasions, trade deals and tech breakthroughs
+- **Tech tree** with three branches (Infrastructure, Energy, Society) that unlock advanced buildings
+- **15 achievements**, from "First Building" to "Cyberpunk Legend"
+- **Save and load** your city as a JSON file, plus periodic auto-save
+- **Retro sound effects** made with the Web Audio API
+- Terminal-style neon interface with ASCII-art building tiles
 
-## Installation
+## How to play
 
-### Prerequisites
-
-- Python 3.8+
-- Terminal emulator
-
-### Clone and Run
+Open the [live version](https://mizoz.github.io/neongrid/), or run it locally:
 
 ```bash
-git clone https://github.com/mizoz/Neongrid-city-builder.git
-cd Neongrid-city-builder
-pip install -r requirements.txt
-python main.py
+git clone https://github.com/mizoz/neongrid.git
+cd neongrid
+# open index.html in a browser, or serve the folder:
+python3 -m http.server 8000   # then visit http://localhost:8000
 ```
 
-## Gameplay
+`neongrid.html` is a self-contained single-file build of the same game that you can open directly or share as one file.
 
-### Starting Out
+### Controls
 
-Begin with a small settlement and grow into a thriving metropolis. Build essential structures like:
+| Input | Action |
+| --- | --- |
+| Click a building, then click the grid | Place a building |
+| `1`–`9` | Quick-select the first nine buildings |
+| `Space` | Pause / resume |
+| `S` / `L` | Save / load |
+| `Esc` | Cancel placement |
 
-- Power plants
-- Residential zones
-- Commercial districts
-- Research labs
+### Tips
 
-### Resources
+- Build a Power Plant early; most buildings draw energy.
+- Residential Blocks add population capacity; Water Treatment helps it grow.
+- Industrial and Black Market buildings make money but cost happiness, so balance them with Police, Hospitals and Entertainment.
+- Research Labs and Data Centers generate tech for the tech tree.
 
-- ⚡ **Power** - Keep your city running
-- 🍔 **Food** - Feed your population
-- 👥 **Population** - Grow your workforce
-- 💰 **Money** - Fund your expansion
-- 🔬 **Research** - Unlock new technologies
+## Project structure
 
-### Events
+```
+index.html      # entry point (modular version)
+css/style.css   # terminal / neon styling
+js/game.js      # game state, buildings, events, tech tree, achievements, save/load
+neongrid.html   # single-file version of the whole game
+```
 
-Random events keep gameplay exciting:
-- Natural disasters
-- Alien invasions
-- Tech breakthroughs
-- Economic crises
-- Golden ages
+## Tech stack
 
-## Controls
-
-- Arrow keys - Navigate menus
-- Enter - Select/Confirm
-- ESC - Cancel/Back
-
-## Screenshots
-
-Experience the neon-lit aesthetic of a cyberpunk city builder!
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Open a Pull Request
+HTML, CSS and vanilla JavaScript (DOM rendering, `setInterval` game loop, Web Audio API, File API for save/load). Hosted on GitHub Pages.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Author
-
-**mizoz**
-- GitHub: [@mizoz](https://github.com/mizoz)
-
----
-
-⭐ If you find this project useful, please consider giving it a star on GitHub!
-
+MIT © 2026 Ahmed Mahmoud. See [LICENSE](LICENSE).
