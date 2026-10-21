@@ -2,7 +2,7 @@
 
 A cyberpunk city-builder that runs in the browser, written in plain HTML, CSS and JavaScript with no frameworks or build step. Place buildings on a grid, balance credits, energy, population and happiness, survive random events, and research upgrades through a small tech tree.
 
-**Play it:** https://mizoz.github.io/neongrid/
+**Play it:** https://lab.zalastack.com/neongrid/
 
 ![NeonGrid gameplay screenshot](docs/screenshot.png)
 
@@ -20,7 +20,7 @@ A cyberpunk city-builder that runs in the browser, written in plain HTML, CSS an
 
 ## How to play
 
-Open the [live version](https://mizoz.github.io/neongrid/), or run it locally:
+Open the [live version](https://lab.zalastack.com/neongrid/), or run it locally:
 
 ```bash
 git clone https://github.com/mizoz/neongrid.git
